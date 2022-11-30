@@ -42,4 +42,4 @@ On the root of the repo, there are two additional Python scripts:
 * ```search_btle.py``` returns a ```dict``` of MAC Addresses and Device Names of the devices of interest given a search phrase. Useful to integrate into programs where you do not know the MAC Address of the BLE devices you want to interact with (e.g. a room full of Govee bulbs...)
 
 # Reverse Engineering of H6001 BLE Packets
-[Have a look here for how the BLE packets that control the state of the LED bulb were reverse engienered. ](https://github.com/egold555/Govee-Reverse-Engineering/blob/master/Products/H6127.md)
+[Have a look here for how the BLE packets that control the state of the LED bulb were reverse engineered. ](https://github.com/egold555/Govee-Reverse-Engineering/blob/master/Products/H6127.md)
