@@ -1,6 +1,6 @@
 import time
 
-from govee_btled import BluetoothLED
+from govee_btled_windows import BluetoothLED
 
 # Replace this with your LED's MAC address
 led = BluetoothLED('XX:XX:XX:XX:XX:XX')
