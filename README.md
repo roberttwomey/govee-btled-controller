@@ -23,7 +23,7 @@ See `__main__.py` for a full example in action.
 
 ```python
 import time
-from govee_btled import BluetoothLED
+from govee_btled_windows import BluetoothLED
 
 led = BluetoothLED('<your MAC here>')
 led.set_state(True)
