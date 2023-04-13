@@ -1,33 +1,22 @@
-import time
-
 from govee_btled_windows import BluetoothLED
+import time
+import asyncio
 
-# Replace this with your LED's MAC address
-led = BluetoothLED('XX:XX:XX:XX:XX:XX')
-
-print('Switching on LED')
-led.set_state(True)
-time.sleep(.5)
-
-print('Changing colors in RGB')
-for color in ['red', 'green', 'blue', 'purple', 'yellow', 'cyan', 'orange', 'white']:
-    print(f'[*] {color}')
-    led.set_color(color)
+async def main():
+    # Replace this with your LED's MAC address
+    led = BluetoothLED('XX:XX:XX:XX:XX:XX')
+    await led.init_and_connect()
+    await led.set_state(True)
+    await led.set_color_white(-.55)
     time.sleep(.5)
+    await led.set_color('orangered')
+    await led.set_brightness(.7)
 
-print('Changing brightness')
-for i in range(5+1):
-    val = i/5
-    print(f'[*] {int(val*100):03d}%')
-    led.set_brightness(val)
-    time.sleep(.5)
+loop = asyncio.get_event_loop()
+try:
+    loop.run_until_complete(main())
+finally:
+    loop.close()
 
-print('Changing colors in white-mode')
-for i in range(-20, 20+1):
-    val = i/20
-    print(f'[*] {abs(int(val*100)):03d}% {"warm" if val <= 0 else "cold"} white')
-    led.set_color_white(val)
-    time.sleep(.2)
-
-print('Switching off LED')
-led.set_state(False)
+# Or comment all that out and uncomment this if you want to do a search for MAC addresses:
+# print(my_funcs.search_btle("minger"))
