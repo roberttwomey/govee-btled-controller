@@ -38,9 +38,9 @@ class LedMode(IntEnum):
 
 
 class BluetoothLED:
-    def __init__(self, mac):
+    def __init__(self, mac, timeout=5):
         self.mac = mac
-        self._bt = BleakClient(mac)
+        self._bt = BleakClient(mac, timeout=timeout)
 
         self.init_and_connect()
 
