@@ -23,7 +23,7 @@ See `__main__.py` for a full example in action.
 
 ```python
 import time
-from govee_btled_windows import BluetoothLED
+from govee-btled-controller import BluetoothLED
 import asyncio
 
 async def main():
