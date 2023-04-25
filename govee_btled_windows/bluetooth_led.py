@@ -10,6 +10,7 @@ from shades_of_white import values as SHADES_OF_WHITE
 
 UUID_CONTROL_CHARACTERISTIC = '00010203-0405-0607-0809-0a0b0c0d2b11'
 
+
 def color2rgb(color):
     """ Converts a color-convertible into 3-tuple of 0-255 valued ints. """
     col = Color(color)
@@ -17,30 +18,35 @@ def color2rgb(color):
     rgb = [round(x * 255) for x in rgb]
     return tuple(rgb)
 
+
 class LedCommand(IntEnum):
     """ A control command packet's type. """
-    POWER      = 0x01
+    POWER = 0x01
     BRIGHTNESS = 0x04
-    COLOR      = 0x05
+    COLOR = 0x05
+
 
 class LedMode(IntEnum):
     """
     The mode in which a color change happens in.
-    
+
     Currently only manual is supported.
     """
-    MANUAL     = 0x02
+    MANUAL = 0x02
     MICROPHONE = 0x06
-    SCENES     = 0x05
+    SCENES = 0x05
+
 
 class BluetoothLED:
-    def __init__(self,mac):
+    def __init__(self, mac, timeout=5):
         self.mac = mac
-        self._bt = BleakClient(mac)
-        async def connectClient():
-            await self._bt.connect()
-            print(self._bt.is_connected)
-        asyncio.run(connectClient())
+        self._bt = BleakClient(mac, timeout=timeout)
+
+        self.init_and_connect()
+
+    async def init_and_connect(self):
+        await self._bt.connect()
+        print(self._bt.is_connected)
 
     def __del__(self):
         self._cleanup()
@@ -51,34 +57,32 @@ class BluetoothLED:
     # Though, removing the resources for the connection should do the trick.
     def _cleanup(self):
         self._bt = None
-        
-            
-            
-    def set_state(self, onoff):
-        """ Controls the power state of the LED. """
-        return self._send(LedCommand.POWER, [0x1 if onoff else 0x0])
 
-    def set_brightness(self, value):
+    async def set_state(self, onoff):
+        """ Controls the power state of the LED. """
+        return await self._send(LedCommand.POWER, [0x1 if onoff else 0x0])
+
+    async def set_brightness(self, value):
         """
         Sets the LED's brightness.
-        
+
         `value` must be a value between 0.0 and 1.0
         """
         if not 0 <= float(value) <= 1:
             raise ValueError(f'Brightness out of range: {value}')
         value = round(value * 0xFF)
-        return self._send(LedCommand.BRIGHTNESS, [value])
+        return await self._send(LedCommand.BRIGHTNESS, [value])
 
-    def set_color(self, color):
+    async def set_color(self, color):
         """
         Sets the LED's color.
-        
+
         `color` must be a color-convertible (see the `colour` library),
         e.g. 'red', '#ff0000', etc.
         """
-        return self._send(LedCommand.COLOR, [LedMode.MANUAL, *color2rgb(color)])
+        return await self._send(LedCommand.COLOR, [LedMode.MANUAL, *color2rgb(color)])
 
-    def set_color_white(self, value):
+    async def set_color_white(self, value):
         """
         Sets the LED's color in white-mode.
 
@@ -89,18 +93,19 @@ class BluetoothLED:
         """
         if not -1 <= value <= 1:
             raise ValueError(f'White value out of range: {value}')
-        value = (value+1) / 2 # in [0.0, 1.0]
-        index = round(value * (len(SHADES_OF_WHITE)-1))
+        value = (value + 1) / 2  # in [0.0, 1.0]
+        index = round(value * (len(SHADES_OF_WHITE) - 1))
         white = Color(SHADES_OF_WHITE[index])
 
         # Set the color to white (although ignored) and the boolean flag to True
-        return self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
+        return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
 
-    def _send(self, cmd, payload):
+    async def _send(self, cmd, payload):
         """ Sends a command and handles paylaod padding. """
         if not isinstance(cmd, int):
             raise ValueError('Invalid command')
-        if not isinstance(payload, bytes) and not (isinstance(payload, list) and all(isinstance(x, int) for x in payload)):
+        if not isinstance(payload, bytes) and not (
+                isinstance(payload, list) and all(isinstance(x, int) for x in payload)):
             raise ValueError('Invalid payload')
         if len(payload) > 17:
             raise ValueError('Payload too long')
@@ -111,19 +116,20 @@ class BluetoothLED:
         frame = bytes([0x33, cmd]) + bytes(payload)
         # pad frame data to 19 bytes (plus checksum)
         frame += bytes([0] * (19 - len(frame)))
-        
+
         # The checksum is calculated by XORing all data bytes
         checksum = 0
         for b in frame:
             checksum ^= b
-        
-        frame += bytes([checksum & 0xFF])
-        # return frame
-        
-        async def main():
-            await self._bt.write_gatt_char(UUID_CONTROL_CHARACTERISTIC,frame)
 
-        asyncio.run(main())
+        frame += bytes([checksum & 0xFF])
+
+        # return frame
+
+        async def main():
+            await self._bt.write_gatt_char(UUID_CONTROL_CHARACTERISTIC, frame)
+
+        await main()
 
         # self._dev.char_write(UUID_CONTROL_CHARACTERISTIC, frame)
         # Implement Bleak's BLE functionality here. This replaces the original implementation's use of pyGATT, which is not
