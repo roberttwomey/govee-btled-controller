@@ -6,7 +6,7 @@ This wrapper supports controlling the Govee/Minger H6001 Smart LED Light Bulb.
 # Installation
 Use pip to install:
 ```
-pip install -U git+https://github.com/kabyru/govee_btled_windows
+pip install -U git+https://github.com/kabyru/govee-btled-controller
 ```
 
 # Platform Support
