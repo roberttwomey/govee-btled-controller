@@ -4,7 +4,8 @@ import asyncio
 
 async def main():
     # Replace this with your LED's MAC address
-    led = BluetoothLED('XX:XX:XX:XX:XX:XX')
+    # led = BluetoothLED('XX:XX:XX:XX:XX:XX')
+    led = BluetoothLED('74209773-2F79-D43E-5EE9-AEF071CEA34C')
     await led.init_and_connect()
     await led.set_state(True)
     await led.set_color_white(-.55)
@@ -20,3 +21,4 @@ finally:
 
 # Or comment all that out and uncomment this if you want to do a search for MAC addresses:
 # print(my_funcs.search_btle("minger"))
+# print(my_funcs.search_btle("govee"))

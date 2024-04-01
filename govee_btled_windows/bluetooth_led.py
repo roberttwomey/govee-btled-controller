@@ -1,12 +1,11 @@
 from enum import IntEnum
-
 from colour import Color
-
 from bleak import BleakClient
+import bleak
 
 import asyncio
 
-from shades_of_white import values as SHADES_OF_WHITE
+from .shades_of_white import values as SHADES_OF_WHITE
 
 UUID_CONTROL_CHARACTERISTIC = '00010203-0405-0607-0809-0a0b0c0d2b11'
 
@@ -40,6 +39,7 @@ class LedMode(IntEnum):
 class BluetoothLED:
     def __init__(self, mac, timeout=5):
         self.mac = mac
+        # self._bt = BleakClient(mac, backend=bleak.backends.corebluetooth, timeout=timeout)
         self._bt = BleakClient(mac, timeout=timeout)
 
         self.init_and_connect()
@@ -47,6 +47,7 @@ class BluetoothLED:
     async def init_and_connect(self):
         await self._bt.connect()
         print(self._bt.is_connected)
+        # print(self._bt.services.characteristics)
 
     def __del__(self):
         self._cleanup()
@@ -68,11 +69,14 @@ class BluetoothLED:
 
         `value` must be a value between 0.0 and 1.0
         """
+        invalue = float(value)
         if not 0 <= float(value) <= 1:
             raise ValueError(f'Brightness out of range: {value}')
-        value = round(value * 0xFF)
+        # value = round(value * 0xFF)
+        value = round(value * 100)
+        # print(f"brightness {invalue} {value}")
         return await self._send(LedCommand.BRIGHTNESS, [value])
-
+    
     async def set_color(self, color):
         """
         Sets the LED's color.

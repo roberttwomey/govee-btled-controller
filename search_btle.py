@@ -8,15 +8,15 @@ def search_btle(device_of_interest):
     from bleak import BleakScanner
 
     found_devices = []
-    # device_of_interest = "minger"
+    device_of_interest = "govee"
 
     async def main():
-        devices = await BleakScanner.discover()
+        devices = await BleakScanner().discover()
         for d in devices:
             split_BLEDevice = (str(d).split(": "))
+            # print(split_BLEDevice[1].lower())
             if device_of_interest in split_BLEDevice[1].lower():
                 found_devices.append({"address": split_BLEDevice[0], "name":split_BLEDevice[1]})
-
 
     asyncio.run(main())
     return found_devices
