@@ -6,15 +6,16 @@ import numpy as np
 async def main():
     # Replace this with your LED's MAC address
     # led = BluetoothLED('74209773-2F79-D43E-5EE9-AEF071CEA34C') # bulb
-    led = BluetoothLED('EA5D5E0C-AD67-8D3D-2ABE-501A97DA4077') # bar
+    led = BluetoothLED('46A48234-B7BF-80C1-8A7F-F66A3FA977B5') # lightbar2
+    # led = BluetoothLED('EA5D5E0C-AD67-8D3D-2ABE-501A97DA4077') # bar
     await led.init_and_connect()
     print("connected")
     
     # await led.set_state(False) # off
     # time.sleep(1.5)
     # await led.set_state(True) # on
-    await led.set_brightness(0.25)
-    time.sleep(1.5)
+    # await led.set_brightness(0.25)
+    # time.sleep(1.5)
     # await led.set_brightness(1.0)
 
     # for i in range(5):
@@ -24,20 +25,20 @@ async def main():
     #     for b in np.linspace(1.0, 0.0, 30):
     #         await led.set_brightness(b)
 
-    # for b in np.linspace(1.0, 0.0, 6):
-    #     await led.set_brightness(b)
-    #     time.sleep(5)
+    for b in np.linspace(1.0, 0.0, 6):
+        await led.set_brightness(b)
+        time.sleep(5)
 
-
+    await led.set_brightness(1.0)
     # await led.set_color('orangered')
 
     # await led.test_bar()
     # await led._send(0x09, [0x0c, 0x2a, 0x01, 0x02, 0x01, 0xf9])
-    await led._send(0x05, [0x15, 0x05, 0x03, 0x55])
-    await led._send(0x05, [0x15, 0x05, 0x03, 0x64])
-    await led._send(0x05, [0x15, 0x05, 0x03, 0x01])
-    await led._send(0x05, [0x15, 0x05, 0x03, 0x64])
-    await led._send(0x05, [0x15, 0x01, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x0f])
+    # await led._send(0x05, [0x15, 0x05, 0x03, 0x55])
+    # await led._send(0x05, [0x15, 0x05, 0x03, 0x64])
+    # await led._send(0x05, [0x15, 0x05, 0x03, 0x01])
+    # await led._send(0x05, [0x15, 0x05, 0x03, 0x64])
+    # await led._send(0x05, [0x15, 0x01, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x0f])
 
     
 

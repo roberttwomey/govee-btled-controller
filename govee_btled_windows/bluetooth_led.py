@@ -34,6 +34,7 @@ class LedMode(IntEnum):
     MANUAL = 0x02
     MICROPHONE = 0x06
     SCENES = 0x05
+    RGBBAR = 0x15
     RGB = 0x0d
 
 
@@ -88,6 +89,32 @@ class BluetoothLED:
         thisdata = color2rgb(color)
         print(f"set color: {thisdata}")
         return await self._send(LedCommand.COLOR, [LedMode.RGB, *color2rgb(color)])
+
+    async def set_color_bar(self, color):
+        """
+        Sets the LED's color.
+
+        `color` must be a color-convertible (see the `colour` library),
+        e.g. 'red', '#ff0000', etc.
+        """
+        thisdata = color2rgb(color)
+        print(f"set color: {thisdata}")
+        return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, *color2rgb(color)])
+    
+    async def test_bar(self):
+        """
+        Sets the LED's color.
+
+        `color` must be a color-convertible (see the `colour` library),
+        e.g. 'red', '#ff0000', etc.
+        """
+        # return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x05, 0x03, 0x61])
+        # return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x01, 0x00, 0x00,
+        #                                            0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 
+        #                                            0x0f])
+        return await self._send(0x09, [0x0c, 0x2a, 0x01, 0x02, 0x01, 0xf9])
+    
+
 
     async def set_color_white(self, value):
         """
