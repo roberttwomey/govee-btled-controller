@@ -1,6 +1,7 @@
 import time
 from govee_btled_windows import BluetoothLED
 import asyncio
+import numpy as np
 
 async def main():
     # Replace this with your LED's MAC address
@@ -9,23 +10,38 @@ async def main():
     print("connected")
     
     # await led.set_state(False) # off
+    # time.sleep(1.5)
     # await led.set_state(True) # on
-    await led.set_brightness(1.0)
+    # await led.set_brightness(0.25)
+
+    # for i in range(5):
+    #     for b in np.linspace(0.0, 1.0, 30):
+    #         await led.set_brightness(b)
+
+    #     for b in np.linspace(1.0, 0.0, 30):
+    #         await led.set_brightness(b)
+
+    await led.set_color('orangered')
     
-
-
-    # await led.test_brightness(0x88)
-    # await led.set_color('red')
-    # await led.set_color('#ff0000')
-    # await led.set_brightness(0.9)
+    # OCEAN DESCENT
+    # colors https://www.w3.org/TR/css-color-3/#svg-color
+    # await led.set_brightness(1.0)
+    # await led.set_color('cyan')
+    # time.sleep(1.5)
+    # await led.set_color('blue')
+    # time.sleep(1.5)
+    # await led.set_color('darkblue')
+    # time.sleep(1.5)
+    # await led.set_color('navy')
+    # time.sleep(1.5)
+    # await led.set_color('midnightblue')
+    # await led.set_brightness(0.1)
     
-
     # await led.set_color_white(-.55)
-    # time.sleep(.5)
-    # print("white")
-    # await led.set_color('orangered')
-    # await led.set_brightness(.7)
-    # print("orangered")
+    # await led.set_color_white(.5)
+
+    # NOT WORKING
+    # await led.set_scene(0x08)    
     time.sleep(2)
 
 

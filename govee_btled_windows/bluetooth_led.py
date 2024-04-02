@@ -34,6 +34,7 @@ class LedMode(IntEnum):
     MANUAL = 0x02
     MICROPHONE = 0x06
     SCENES = 0x05
+    RGB = 0x0d
 
 
 class BluetoothLED:
@@ -69,7 +70,7 @@ class BluetoothLED:
 
         `value` must be a value between 0.0 and 1.0
         """
-        invalue = float(value)
+        # invalue = float(value)
         if not 0 <= float(value) <= 1:
             raise ValueError(f'Brightness out of range: {value}')
         # value = round(value * 0xFF)
@@ -84,7 +85,9 @@ class BluetoothLED:
         `color` must be a color-convertible (see the `colour` library),
         e.g. 'red', '#ff0000', etc.
         """
-        return await self._send(LedCommand.COLOR, [LedMode.MANUAL, *color2rgb(color)])
+        thisdata = color2rgb(color)
+        print(f"set color: {thisdata}")
+        return await self._send(LedCommand.COLOR, [LedMode.RGB, *color2rgb(color)])
 
     async def set_color_white(self, value):
         """
@@ -102,7 +105,14 @@ class BluetoothLED:
         white = Color(SHADES_OF_WHITE[index])
 
         # Set the color to white (although ignored) and the boolean flag to True
-        return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
+        # return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
+        return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
+
+    # async def set_scene(self, value):
+    #     """
+    #     Sets LED into a preprogrammed scene.
+    #     """
+    #     return await self._send(LedCommand.COLOR, [0x04, value])
 
     async def _send(self, cmd, payload):
         """ Sends a command and handles paylaod padding. """
@@ -118,6 +128,8 @@ class BluetoothLED:
         payload = bytes(payload)
 
         frame = bytes([0x33, cmd]) + bytes(payload)
+
+        # print(f"front 4 {frame}")
         # pad frame data to 19 bytes (plus checksum)
         frame += bytes([0] * (19 - len(frame)))
 
@@ -127,6 +139,10 @@ class BluetoothLED:
             checksum ^= b
 
         frame += bytes([checksum & 0xFF])
+
+        for b in frame:
+            print(f"{b:02x}", end=" ")
+        print()
 
         # return frame
 
