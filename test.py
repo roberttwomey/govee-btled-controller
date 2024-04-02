@@ -45,6 +45,10 @@ async def main():
     await led.set_color_white(-1.0)
     time.sleep(1.5)
     await led.set_color_white(1.0)
+    time.sleep(1.5)
+    await led.set_color_white(0)
+    time.sleep(1.5)
+    await led.set_color_white(-1.0)
 
     # NOT WORKING
     # await led.set_scene(0x08)    

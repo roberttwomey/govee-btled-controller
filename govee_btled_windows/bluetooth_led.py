@@ -109,13 +109,15 @@ class BluetoothLED:
         # 9000 0x2328
         two = round((value * 7000) + 2000)
         # twohex = hex(two)
-        print(hex(int(two/256)), hex(two%256))
-
+        valA = int(two/256)
+        valA = f"{valA:#0{4}x}"
+        valB = hex(two%256)
+        print(valA, valB)
         # Set the color to white (although ignored) and the boolean flag to True
         # return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
         # return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 0x23, 0x28, *color2rgb(white)])
         return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
-                                                   hex(int(two/256)), hex(two%256),
+                                                   eval(valA), eval(valB),
                                                    *color2rgb(white)])
 
     # async def set_scene(self, value):
@@ -124,21 +126,21 @@ class BluetoothLED:
     #     """
     #     return await self._send(LedCommand.COLOR, [0x04, value])
 
-    async def test_white(self):
-        """
-        Sets LED into a preprogrammed scene.
-        """
-        return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
-                                                   0x23, 0x28,
-                                                   0xd9, 0xe1, 0xff])
+    # async def test_white(self):
+    #     """
+    #     Sets LED into a preprogrammed scene.
+    #     """
+    #     return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
+    #                                                0x23, 0x28,
+    #                                                0xd9, 0xe1, 0xff])
 
-    async def test_white2(self):
-        """
-        Sets LED into a preprogrammed scene.
-        """
-        return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
-                                                   0x07, 0xd0,
-                                                   0xff, 0x8d, 0x0b])
+    # async def test_white2(self):
+    #     """
+    #     Sets LED into a preprogrammed scene.
+    #     """
+    #     return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
+    #                                                0x07, 0xd0,
+    #                                                0xff, 0x8d, 0x0b])
 
 
     async def _send(self, cmd, payload):
