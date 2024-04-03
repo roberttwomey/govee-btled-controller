@@ -99,7 +99,9 @@ class BluetoothLED:
         """
         thisdata = color2rgb(color)
         print(f"set color: {thisdata}")
-        return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, *color2rgb(color)])
+        return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x01, *color2rgb(color),
+                                                   0x00, 0x00, 0x00, 0x00, 0x00,
+                                                   0xff, 0x0f])
     
     async def test_bar(self):
         """
@@ -147,6 +149,37 @@ class BluetoothLED:
                                                    eval(valA), eval(valB),
                                                    *color2rgb(white)])
 
+    async def set_color_white_bar(self, value):
+        """
+        Sets the LED's color in white-mode.
+
+        `value` must be a value between -1.0 and 1.0
+        White mode seems to enable a different set of LEDs within the bulb.
+        This method uses the hardcoded RGB values of whites, directly taken from
+        the mechanism used in Govee's app.
+        """
+        if not -1 <= value <= 1:
+            raise ValueError(f'White value out of range: {value}')
+        value = (value + 1) / 2  # in [0.0, 1.0]
+        index = round(value * (len(SHADES_OF_WHITE) - 1))
+        white = Color(SHADES_OF_WHITE[index])
+
+        # two = value*0x07de
+        # 2000 0x07d0
+        # 9000 0x2328
+        two = round((value * 7000) + 2000)
+        # twohex = hex(two)
+        valA = int(two/256)
+        valA = f"{valA:#0{4}x}"
+        valB = hex(two%256)
+        print(valA, valB)
+        # Set the color to white (although ignored) and the boolean flag to True
+        # return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
+        # return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 0x23, 0x28, *color2rgb(white)])
+        return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x01, 0xff, 0xff, 0xff, 
+                                                   eval(valA), eval(valB),
+                                                   *color2rgb(white), 0xff, 0x0f])
+    
     # async def set_scene(self, value):
     #     """
     #     Sets LED into a preprogrammed scene.
@@ -169,9 +202,46 @@ class BluetoothLED:
     #                                                0x07, 0xd0,
     #                                                0xff, 0x8d, 0x0b])
 
+    async def _send_aa(self, cmd, payload):
+        """ Sends a command and handles payload padding. """
+        if not isinstance(cmd, int):
+            raise ValueError('Invalid command')
+        if not isinstance(payload, bytes) and not (
+                isinstance(payload, list) and all(isinstance(x, int) for x in payload)):
+            raise ValueError('Invalid payload')
+        if len(payload) > 17:
+            raise ValueError('Payload too long')
+
+        cmd = cmd & 0xFF
+        payload = bytes(payload)
+
+        frame = bytes([0xaa, cmd]) + bytes(payload)
+
+        # print(f"front 4 {frame}")
+        # pad frame data to 19 bytes (plus checksum)
+        frame += bytes([0] * (19 - len(frame)))
+
+        # The checksum is calculated by XORing all data bytes
+        checksum = 0
+        for b in frame:
+            checksum ^= b
+
+        frame += bytes([checksum & 0xFF])
+
+        for b in frame:
+            print(f"{b:02x}", end=" ")
+        print()
+
+        # return frame
+
+        async def main():
+            await self._bt.write_gatt_char(UUID_CONTROL_CHARACTERISTIC, frame)
+
+        await main()
+
 
     async def _send(self, cmd, payload):
-        """ Sends a command and handles paylaod padding. """
+        """ Sends a command and handles payload padding. """
         if not isinstance(cmd, int):
             raise ValueError('Invalid command')
         if not isinstance(payload, bytes) and not (
