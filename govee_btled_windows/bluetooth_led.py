@@ -9,7 +9,6 @@ from .shades_of_white import values as SHADES_OF_WHITE
 
 UUID_CONTROL_CHARACTERISTIC = '00010203-0405-0607-0809-0a0b0c0d2b11'
 
-
 def color2rgb(color):
     """ Converts a color-convertible into 3-tuple of 0-255 valued ints. """
     col = Color(color)
@@ -43,12 +42,11 @@ class BluetoothLED:
         self.mac = mac
         # self._bt = BleakClient(mac, backend=bleak.backends.corebluetooth, timeout=timeout)
         self._bt = BleakClient(mac, timeout=timeout)
-
         self.init_and_connect()
 
     async def init_and_connect(self):
         await self._bt.connect()
-        print(self._bt.is_connected)
+        # print(self._bt.is_connected)
         # print(self._bt.services.characteristics)
 
     def __del__(self):
@@ -65,7 +63,7 @@ class BluetoothLED:
         """ Controls the power state of the LED. """
         return await self._send(LedCommand.POWER, [0x1 if onoff else 0x0])
 
-    async def set_brightness(self, value):
+    async def set_brightness(self, value, debug=False):
         """
         Sets the LED's brightness.
 
@@ -76,7 +74,8 @@ class BluetoothLED:
             raise ValueError(f'Brightness out of range: {value}')
         # value = round(value * 0xFF)
         value = round(value * 100)
-        # print(f"brightness {invalue} {value}")
+        if debug:
+            print(f"brightness {invalue} {value}")
         return await self._send(LedCommand.BRIGHTNESS, [value])
     
     async def set_color(self, color):
@@ -87,10 +86,11 @@ class BluetoothLED:
         e.g. 'red', '#ff0000', etc.
         """
         thisdata = color2rgb(color)
-        print(f"set color: {thisdata}")
+        # print(f"set color: {thisdata}") # debug
         return await self._send(LedCommand.COLOR, [LedMode.RGB, *color2rgb(color)])
 
-    async def set_color_bar(self, color):
+
+    async def set_color_bar(self, color, debug=False):
         """
         Sets the LED's color.
 
@@ -98,24 +98,11 @@ class BluetoothLED:
         e.g. 'red', '#ff0000', etc.
         """
         thisdata = color2rgb(color)
-        print(f"set color: {thisdata}")
+        if debug:
+            print(f"set color: {thisdata}") # debug
         return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x01, *color2rgb(color),
                                                    0x00, 0x00, 0x00, 0x00, 0x00,
                                                    0xff, 0x0f])
-    
-    async def test_bar(self):
-        """
-        Sets the LED's color.
-
-        `color` must be a color-convertible (see the `colour` library),
-        e.g. 'red', '#ff0000', etc.
-        """
-        # return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x05, 0x03, 0x61])
-        # return await self._send(LedCommand.COLOR, [LedMode.RGBBAR, 0x01, 0x00, 0x00,
-        #                                            0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 
-        #                                            0x0f])
-        return await self._send(0x09, [0x0c, 0x2a, 0x01, 0x02, 0x01, 0xf9])
-    
 
 
     async def set_color_white(self, value):
@@ -141,7 +128,7 @@ class BluetoothLED:
         valA = int(two/256)
         valA = f"{valA:#0{4}x}"
         valB = hex(two%256)
-        print(valA, valB)
+        # print(valA, valB)
         # Set the color to white (although ignored) and the boolean flag to True
         # return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
         # return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 0x23, 0x28, *color2rgb(white)])
@@ -172,7 +159,8 @@ class BluetoothLED:
         valA = int(two/256)
         valA = f"{valA:#0{4}x}"
         valB = hex(two%256)
-        print(valA, valB)
+        # print(valA, valB)
+        
         # Set the color to white (although ignored) and the boolean flag to True
         # return await self._send(LedCommand.COLOR, [LedMode.MANUAL, 0xff, 0xff, 0xff, 0x01, *color2rgb(white)])
         # return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 0x23, 0x28, *color2rgb(white)])
@@ -186,61 +174,8 @@ class BluetoothLED:
     #     """
     #     return await self._send(LedCommand.COLOR, [0x04, value])
 
-    # async def test_white(self):
-    #     """
-    #     Sets LED into a preprogrammed scene.
-    #     """
-    #     return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
-    #                                                0x23, 0x28,
-    #                                                0xd9, 0xe1, 0xff])
 
-    # async def test_white2(self):
-    #     """
-    #     Sets LED into a preprogrammed scene.
-    #     """
-    #     return await self._send(LedCommand.COLOR, [LedMode.RGB, 0xff, 0xff, 0xff, 
-    #                                                0x07, 0xd0,
-    #                                                0xff, 0x8d, 0x0b])
-
-    async def _send_aa(self, cmd, payload):
-        """ Sends a command and handles payload padding. """
-        if not isinstance(cmd, int):
-            raise ValueError('Invalid command')
-        if not isinstance(payload, bytes) and not (
-                isinstance(payload, list) and all(isinstance(x, int) for x in payload)):
-            raise ValueError('Invalid payload')
-        if len(payload) > 17:
-            raise ValueError('Payload too long')
-
-        cmd = cmd & 0xFF
-        payload = bytes(payload)
-
-        frame = bytes([0xaa, cmd]) + bytes(payload)
-
-        # print(f"front 4 {frame}")
-        # pad frame data to 19 bytes (plus checksum)
-        frame += bytes([0] * (19 - len(frame)))
-
-        # The checksum is calculated by XORing all data bytes
-        checksum = 0
-        for b in frame:
-            checksum ^= b
-
-        frame += bytes([checksum & 0xFF])
-
-        for b in frame:
-            print(f"{b:02x}", end=" ")
-        print()
-
-        # return frame
-
-        async def main():
-            await self._bt.write_gatt_char(UUID_CONTROL_CHARACTERISTIC, frame)
-
-        await main()
-
-
-    async def _send(self, cmd, payload):
+    async def _send(self, cmd, payload, debug=False):
         """ Sends a command and handles payload padding. """
         if not isinstance(cmd, int):
             raise ValueError('Invalid command')
@@ -266,9 +201,11 @@ class BluetoothLED:
 
         frame += bytes([checksum & 0xFF])
 
-        for b in frame:
-            print(f"{b:02x}", end=" ")
-        print()
+        # debug
+        if debug:
+            for b in frame:
+                print(f"{b:02x}", end=" ")
+            print()
 
         # return frame
 

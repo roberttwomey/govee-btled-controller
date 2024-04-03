@@ -3,13 +3,16 @@ from govee_btled_windows import BluetoothLED
 import asyncio
 import numpy as np
 
+bulb = '74209773-2F79-D43E-5EE9-AEF071CEA34C'
+lightbar1 = 'EA5D5E0C-AD67-8D3D-2ABE-501A97DA4077'
+lightbar2 = '46A48234-B7BF-80C1-8A7F-F66A3FA977B5'
+
 async def main():
     # Replace this with your LED's MAC address
-    # led = BluetoothLED('74209773-2F79-D43E-5EE9-AEF071CEA34C') # bulb
-    # led = BluetoothLED('46A48234-B7BF-80C1-8A7F-F66A3FA977B5') # lightbar2
-    led = BluetoothLED('EA5D5E0C-AD67-8D3D-2ABE-501A97DA4077') # lightbar1
-    await led.init_and_connect()
-    print("connected")
+    thismac = lightbar1
+    led = BluetoothLED(thismac)
+    if await led.init_and_connect():
+        print("connected {thismac}")
     
     # await led.set_state(False) # off
     # time.sleep(1.5)
@@ -42,7 +45,7 @@ async def main():
 
     # OCEAN DESCENT
     # colors https://www.w3.org/TR/css-color-3/#svg-color
-    await led.set_brightness(1.0)
+    await led.set_brightness(0.5)
     await led.set_color_bar('white')
     time.sleep(3)
     await led.set_color_bar('cyan')
